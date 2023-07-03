@@ -1,7 +1,11 @@
 const { Router } = require("express");
 const router = Router();
 const { get, run } = require("./../services/db");
-const { patchValidator } = require('./../middlewares/validators');
+const {
+  patchValidator,
+  postValidator,
+} = require("./../middlewares/validators");
+
 // api/
 router.get("/", async (req, res, next) => {
   try {
@@ -19,19 +23,19 @@ router.get("/", async (req, res, next) => {
     res.status(200).json({ message: "To-dos retrieved successfully", data });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "error en el servidor", error });
+    res
+      .status(500)
+      .json({ message: "error en el servidor", error: error.message });
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", postValidator, async (req, res, next) => {
   try {
     const { title, description } = req.body;
     const data = await run(
       "INSERT INTO todos (title, description) VALUES (?,?)",
       [title, description]
     );
-    console.log(data.lastID);
-
     res.status(200).json({
       message: "To-do created successfully",
       toDo: {
@@ -43,7 +47,9 @@ router.post("/", async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "error en el servidor", error });
+    res
+      .status(500)
+      .json({ message: "error en el servidor", error: error.message });
   }
 });
 
@@ -73,7 +79,9 @@ router.patch("/:id", patchValidator, async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "error en el servidor", error });
+    res
+      .status(500)
+      .json({ message: "error en el servidor", error: error.message });
   }
 });
 
@@ -98,7 +106,9 @@ router.delete("/:id", async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "error en el servidor", error });
+    res
+      .status(500)
+      .json({ message: "error en el servidor", error: error.message });
   }
 });
 

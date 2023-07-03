@@ -1,7 +1,6 @@
 const { Router } = require("express");
 const router = Router();
 const { get, run } = require("./../services/db");
-const { patchValidator } = require('./../middlewares/validators');
 // api/
 router.get("/", async (req, res, next) => {
   try {
@@ -11,8 +10,6 @@ router.get("/", async (req, res, next) => {
         id: toDo.id,
         title: toDo.title,
         description: toDo.description,
-        date_time: toDo.date_time,
-        date_time_edit: toDo.date_time_edit,
         isDone: Boolean(toDo.isDone),
       };
     });
@@ -47,7 +44,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.patch("/:id", patchValidator, async (req, res, next) => {
+router.patch("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
     const toDo = await get("SELECT * FROM todos WHERE id = ?", [id]); // []
@@ -56,7 +53,16 @@ router.patch("/:id", patchValidator, async (req, res, next) => {
         .status(404)
         .json({ message: `el ID no se encuentra en la db` });
     }
-    const { title, description, isDone } = req.body;
+    let { title, description, isDone } = req.body;
+    if (typeof isDone == "undefined") {
+      isDone = toDo[0].isDone;
+    }
+    if (typeof title == "undefined") {
+      title = toDo[0].title;
+    }
+    if (typeof description == "undefined") {
+      description = toDo[0].description;
+    }
     const isDoneNumber = Number(isDone);
     await run(
       `UPDATE todos SET title = ?, description = ?, isDone = ? WHERE id = ?`,
@@ -68,7 +74,7 @@ router.patch("/:id", patchValidator, async (req, res, next) => {
         id,
         title,
         description,
-        isDone,
+        isDone:Boolean(isDone),
       },
     });
   } catch (error) {
